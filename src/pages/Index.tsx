@@ -7,6 +7,7 @@ import Tasks from '@/components/sections/Tasks';
 import Users from '@/components/sections/Users';
 import Reports from '@/components/sections/Reports';
 import Settings from '@/components/sections/Settings';
+import PermissionGate from '@/components/PermissionGate';
 
 export default function Index() {
   const [activeSection, setActiveSection] = useState('dashboard');
@@ -22,11 +23,19 @@ export default function Index() {
       case 'tasks':
         return <Tasks />;
       case 'users':
-        return <Users />;
+        return (
+          <PermissionGate allowedRoles={['admin', 'manager']}>
+            <Users />
+          </PermissionGate>
+        );
       case 'reports':
         return <Reports />;
       case 'settings':
-        return <Settings />;
+        return (
+          <PermissionGate allowedRoles={['admin']}>
+            <Settings />
+          </PermissionGate>
+        );
       default:
         return <Dashboard />;
     }

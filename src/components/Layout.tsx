@@ -3,7 +3,15 @@ import { cn } from '@/lib/utils';
 import Icon from '@/components/ui/icon';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { currentUser } from '@/data/mockData';
+import { useAuth } from '@/contexts/AuthContext';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 interface LayoutProps {
   children: ReactNode;
@@ -23,6 +31,7 @@ const menuItems = [
 
 export default function Layout({ children, activeSection, onSectionChange }: LayoutProps) {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const { user, logout, hasRole } = useAuth();
 
   const getUserInitials = (name: string) => {
     return name
@@ -60,37 +69,67 @@ export default function Layout({ children, activeSection, onSectionChange }: Lay
         </div>
 
         <nav className="flex-1 p-2 space-y-1">
-          {menuItems.map((item) => (
-            <button
-              key={item.id}
-              onClick={() => onSectionChange(item.id)}
-              className={cn(
-                'w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200',
-                activeSection === item.id
-                  ? 'bg-sidebar-accent text-sidebar-accent-foreground font-medium'
-                  : 'text-sidebar-foreground hover:bg-sidebar-accent/50'
-              )}
-            >
-              <Icon name={item.icon as any} size={20} />
-              {!isSidebarCollapsed && <span>{item.label}</span>}
-            </button>
-          ))}
+          {menuItems.map((item) => {
+            if (item.id === 'users' && !hasRole(['admin', 'manager'])) {
+              return null;
+            }
+            if (item.id === 'settings' && !hasRole(['admin'])) {
+              return null;
+            }
+            return (
+              <button
+                key={item.id}
+                onClick={() => onSectionChange(item.id)}
+                className={cn(
+                  'w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200',
+                  activeSection === item.id
+                    ? 'bg-sidebar-accent text-sidebar-accent-foreground font-medium'
+                    : 'text-sidebar-foreground hover:bg-sidebar-accent/50'
+                )}
+              >
+                <Icon name={item.icon as any} size={20} />
+                {!isSidebarCollapsed && <span>{item.label}</span>}
+              </button>
+            );
+          })}
         </nav>
 
         <div className="p-4 border-t border-sidebar-border">
-          <div className={cn('flex items-center gap-3', isSidebarCollapsed && 'justify-center')}>
-            <Avatar className="w-10 h-10">
-              <AvatarFallback className="bg-sidebar-primary text-sidebar-primary-foreground">
-                {getUserInitials(currentUser.name)}
-              </AvatarFallback>
-            </Avatar>
-            {!isSidebarCollapsed && (
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{currentUser.name}</p>
-                <p className="text-xs text-sidebar-foreground/60 truncate">{currentUser.role}</p>
-              </div>
-            )}
-          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                className={cn(
+                  'w-full flex items-center gap-3 hover:bg-sidebar-accent/50 rounded-lg p-2 transition-colors',
+                  isSidebarCollapsed && 'justify-center'
+                )}
+              >
+                <Avatar className="w-10 h-10">
+                  <AvatarFallback className="bg-sidebar-primary text-sidebar-primary-foreground">
+                    {getUserInitials(user?.name || '')}
+                  </AvatarFallback>
+                </Avatar>
+                {!isSidebarCollapsed && (
+                  <div className="flex-1 min-w-0 text-left">
+                    <p className="text-sm font-medium truncate">{user?.name}</p>
+                    <p className="text-xs text-sidebar-foreground/60 truncate">{user?.role}</p>
+                  </div>
+                )}
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel>Мой аккаунт</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => onSectionChange('settings')}>
+                <Icon name="Settings" size={16} className="mr-2" />
+                Настройки
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={logout} className="text-destructive">
+                <Icon name="LogOut" size={16} className="mr-2" />
+                Выйти
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </aside>
 

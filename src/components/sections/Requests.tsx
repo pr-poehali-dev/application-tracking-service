@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import Icon from '@/components/ui/icon';
 import { mockRequests, mockUsers } from '@/data/mockData';
 import { Request } from '@/types';
+import { useAuth } from '@/contexts/AuthContext';
 import {
   Dialog,
   DialogContent,
@@ -41,6 +42,7 @@ const statusLabels = {
 export default function Requests() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedRequest, setSelectedRequest] = useState<Request | null>(null);
+  const { hasRole } = useAuth();
 
   const filteredRequests = mockRequests.filter(
     (request) =>
@@ -59,10 +61,12 @@ export default function Requests() {
           <h1 className="text-3xl font-bold">Заявки</h1>
           <p className="text-muted-foreground mt-1">Управление заявками на обслуживание</p>
         </div>
-        <Button className="gap-2">
-          <Icon name="Plus" size={18} />
-          Создать заявку
-        </Button>
+        {hasRole(['admin', 'manager']) && (
+          <Button className="gap-2">
+            <Icon name="Plus" size={18} />
+            Создать заявку
+          </Button>
+        )}
       </div>
 
       <Card>

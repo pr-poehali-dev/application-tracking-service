@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import Icon from '@/components/ui/icon';
 import { mockTasks, mockUsers } from '@/data/mockData';
+import { useAuth } from '@/contexts/AuthContext';
 
 const priorityColors = {
   low: 'bg-gray-100 text-gray-700',
@@ -31,13 +32,15 @@ const statusLabels = {
 export default function Tasks() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('all');
+  const { hasRole, user } = useAuth();
 
   const filteredTasks = mockTasks.filter((task) => {
     const matchesSearch =
       task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       task.description.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = filterStatus === 'all' || task.status === filterStatus;
-    return matchesSearch && matchesStatus;
+    const matchesUser = hasRole(['admin', 'manager']) || task.assignedTo === user?.id;
+    return matchesSearch && matchesStatus && matchesUser;
   });
 
   const getUserName = (userId: string) => {
@@ -56,12 +59,18 @@ export default function Tasks() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Задачи</h1>
-          <p className="text-muted-foreground mt-1">Управление задачами и отслеживание прогресса</p>
+          <p className="text-muted-foreground mt-1">
+            {hasRole(['admin', 'manager']) 
+              ? 'Управление задачами и отслеживание прогресса'
+              : 'Мои назначенные задачи'}
+          </p>
         </div>
-        <Button className="gap-2">
-          <Icon name="Plus" size={18} />
-          Создать задачу
-        </Button>
+        {hasRole(['admin', 'manager']) && (
+          <Button className="gap-2">
+            <Icon name="Plus" size={18} />
+            Создать задачу
+          </Button>
+        )}
       </div>
 
       <Card>

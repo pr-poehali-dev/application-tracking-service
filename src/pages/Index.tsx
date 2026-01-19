@@ -1,14 +1,40 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useState } from 'react';
+import Layout from '@/components/Layout';
+import Dashboard from '@/components/sections/Dashboard';
+import Requests from '@/components/sections/Requests';
+import Objects from '@/components/sections/Objects';
+import Tasks from '@/components/sections/Tasks';
+import Users from '@/components/sections/Users';
+import Reports from '@/components/sections/Reports';
+import Settings from '@/components/sections/Settings';
 
-const Index = () => {
+export default function Index() {
+  const [activeSection, setActiveSection] = useState('dashboard');
+
+  const renderSection = () => {
+    switch (activeSection) {
+      case 'dashboard':
+        return <Dashboard />;
+      case 'requests':
+        return <Requests />;
+      case 'objects':
+        return <Objects />;
+      case 'tasks':
+        return <Tasks />;
+      case 'users':
+        return <Users />;
+      case 'reports':
+        return <Reports />;
+      case 'settings':
+        return <Settings />;
+      default:
+        return <Dashboard />;
+    }
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4 color-black text-black">Добро пожаловать!</h1>
-        <p className="text-xl text-gray-600">тут будет отображаться ваш проект</p>
-      </div>
-    </div>
+    <Layout activeSection={activeSection} onSectionChange={setActiveSection}>
+      {renderSection()}
+    </Layout>
   );
-};
-
-export default Index;
+}
